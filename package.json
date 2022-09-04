@@ -2,17 +2,21 @@
   "name": "saga-store",
   "version": "1.0.0",
   "private": true,
-  "description": "",
+  "description": "Next generation of state management.",
   "main": "lib/index.js",
-  "module": "src/index.ts",
+  "module": "esm/index.mjs",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack --mode=production --node-env=production",
+    "build:dev": "webpack --mode=development",
+    "build:prod": "webpack --mode=production --node-env=production",
+    "watch": "webpack --watch"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/cctip/saga-store.git"
   },
-  "author": "",
+  "author": "Henry",
   "license": "UNLINCESED",
   "bugs": {
     "url": "https://github.com/cctip/saga-store/issues"
