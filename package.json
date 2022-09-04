@@ -5,8 +5,13 @@
   "description": "Next generation of state management.",
   "main": "lib/index.js",
   "module": "esm/index.mjs",
+  "files": [
+    "lib",
+    "esm"
+  ],
   "scripts": {
-    "test": "echo \"Just skip testing for github workflows...\" && exit 1",
+    "test": "echo \"Just skip testing for github workflows...\" && exit 0",
+    "prepublishOnly": "npm run build",
     "build": "webpack --mode=production --node-env=production",
     "build:dev": "webpack --mode=development",
     "build:prod": "webpack --mode=production --node-env=production",
