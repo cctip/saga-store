@@ -1,6 +1,6 @@
 {
   "name": "@HenryDF2022/saga-store",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "private": true,
   "description": "Next generation of state management.",
   "main": "lib/index.js",
