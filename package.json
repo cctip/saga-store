@@ -1,0 +1,35 @@
+{
+  "name": "saga-store",
+  "version": "1.0.0",
+  "private": true,
+  "description": "",
+  "main": "lib/index.js",
+  "module": "src/index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cctip/saga-store.git"
+  },
+  "author": "",
+  "license": "UNLINCESED",
+  "bugs": {
+    "url": "https://github.com/cctip/saga-store/issues"
+  },
+  "homepage": "https://github.com/cctip/saga-store#readme",
+  "dependencies": {
+    "immer": "^9.0.15",
+    "jotai": "^1.8.2",
+    "redux-saga": "^1.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.18",
+    "@webpack-cli/generators": "^2.5.0",
+    "react": "^18.2.0",
+    "ts-loader": "^9.3.1",
+    "typescript": "^4.8.2",
+    "webpack": "^5.74.0",
+    "webpack-cli": "^4.10.0"
+  }
+}
