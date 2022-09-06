@@ -12,13 +12,44 @@ const config = {
         filename: 'index.js',
         path: path.resolve(__dirname, 'lib'),
         clean: true,
+        // library: {
+        //     name: '@cctip/saga-store',
+        //     type: 'umd',
+        // },
     },
-    externals: {
-        react: 'React',
-        immer: 'immer',
-        jotai: 'jotai',
-        'redux-saga': 'redux-saga',
+    externalsType: 'module',
+    experiments: {
+        outputModule: true,
     },
+    externals: [
+        {
+            react: 'React',
+        },
+        // immer: 'immer',
+        // jotai: 'jotai',
+        // 'redux-saga': 'redux-saga',
+        // redux-saga & redux-saga/effects & @redux-saga/core and so on...
+        function ({ context, request }, callback) {
+            if (/^@?redux-saga/.test(request)) {
+              return callback(null, request, 'module');
+            }
+            callback();
+        },
+        // jotai & jotai/util & jotai/immer and so on...
+        function ({ context, request }, callback) {
+            if (/^jotai/.test(request)) {
+              return callback(null, request, 'module');
+            }
+            callback();
+        },
+        function ({ context, request }, callback) {
+            if (request === 'immer') {
+                // 该外部化模块是一个在`@scope/library`模块里的命名导出（named export）。
+                return callback(null, ['immer', 'namedexport'], 'module');
+            }
+            callback();
+        },
+    ],
     plugins: [
         new TypescriptDeclarationPlugin({}),
         // new DeclarationBundlerPlugin({
@@ -41,24 +72,11 @@ const config = {
     },
 };
 
-const esmConfig = {
-    ...config,
-    output: {
-        filename: 'index.mjs',
-        path: path.resolve(__dirname, 'esm'),
-        clean: true,
-        module: true,
-    },
-    experiments: {
-        outputModule: true,
-    },
-}
-
 module.exports = () => {
     if (isProduction) {
         config.mode = 'production';
     } else {
         config.mode = 'development';
     }
-    return [config, esmConfig];
+    return config;
 };

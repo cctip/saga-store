@@ -4,9 +4,12 @@
   "description": "Next generation of state management.",
   "main": "lib/index.js",
   "module": "esm/index.mjs",
+  "types": "types",
   "files": [
     "lib",
-    "esm"
+    "esm",
+    "types",
+    "package.json"
   ],
   "scripts": {
     "test": "echo \"Just skip testing for github workflows...\" && exit 0",
