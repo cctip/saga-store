@@ -1,6 +1,7 @@
 // Generated using webpack-cli https://github.com/webpack/webpack-cli
 
 const path = require('path');
+// const DeclarationBundlerPlugin = require('declaration-bundler-webpack-plugin');
 
 const isProduction = process.env.NODE_ENV == 'production';
 
@@ -16,6 +17,9 @@ const config = {
         react: 'React',
     },
     plugins: [
+        // new DeclarationBundlerPlugin({
+        //     moduleName: 'saga-store'
+        // }),
         // Add your plugins here
         // Learn more about plugins from https://webpack.js.org/configuration/plugins/
     ],

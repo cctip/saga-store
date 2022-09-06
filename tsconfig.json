@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    "declaration": true,
+    "declarationDir": "types",
     "module": "Node16",
     "noImplicitAny": false,
     "removeComments": true,
