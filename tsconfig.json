@@ -5,7 +5,8 @@
     "removeComments": true,
     "preserveConstEnums": true,
     // "outFile": "./lib/index.js",
-    "sourceMap": true
+    "sourceMap": true,
+    "jsx": "react-jsx",
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "**/*.spec.ts"]

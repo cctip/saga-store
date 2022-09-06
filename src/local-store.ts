@@ -1,33 +1,40 @@
 import { runSaga, stdChannel } from 'redux-saga';
+import * as ef from 'redux-saga/effects';
 import type { RunSagaOptions } from '@redux-saga/core';
 import { Atom } from 'jotai';
-import { useAtomCallback } from 'jotai/utils';
-import { useCallback, useEffect, useRef } from 'react';
+import { waitForAll } from 'jotai/utils';
+import { useEffect, useRef } from 'react';
 import { Action } from '@redux-saga/types';
+import { globalActionRelayChannel, useAtomReadAgent, useAtomWriteAgent } from './util';
 
 type AtomMap = {
   [key: string]: Atom<any>;
 }
 
-export function useLocalStore(opts: RunSagaOptions<Action, any>, atoms: AtomMap, saga, ...args) {
+export function useLocalStore(opts: RunSagaOptions<Action, any>, atoms: AtomMap, saga: GeneratorFunction, ...args: any[]) {
   const channel = useRef(stdChannel()).current;
-  const dispatch = channel.put;
-  const getState = useAtomCallback(
-    useCallback(
-      (get) => Object.fromEntries(
-        Object.entries(atoms).map(([k, v]) => [k, get(v)])
-      ),
-      [],
-    )
-  );
+  const localDispatch = channel.put;
+  const wholeStateAtom = useRef(waitForAll(atoms)).current;
+  
+  const writeAgent = useAtomWriteAgent();
+  const readAgent = useAtomReadAgent();
   useEffect(
     () => {
       const instance = runSaga({
         channel,
-        dispatch,
-        getState,
+        dispatch: localDispatch,
+        getState: () => readAgent(wholeStateAtom),
+        context: {
+          writeAgent,
+          readAgent,
+        },
         ...opts,
-      }, saga, ...args);
+      }, function* () {
+        yield ef.fork(saga, ...args);
+        yield ef.takeEvery(globalActionRelayChannel, function (gAction) {
+          localDispatch(gAction);
+        });
+      });
       return () => {
         setTimeout(() => {
           instance.cancel();
@@ -36,6 +43,21 @@ export function useLocalStore(opts: RunSagaOptions<Action, any>, atoms: AtomMap,
     },
     [],
   );
-  return dispatch;
+  return localDispatch;
 }
 
+/**
+ * use this only in local store
+ * to change global store, use setGlobalStore !
+ * @param atom 
+ * @param val 
+ */
+export function* writeAtom(atom: Atom<any>, val: any) {
+  const write = yield ef.getContext('writeAgent');
+  write({ atom, val });
+}
+
+export function* readAtom(atom: Atom<any>) {
+  const read = yield ef.getContext('readAgent');
+  return read(atom);
+}
