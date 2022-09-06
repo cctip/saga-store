@@ -13,7 +13,7 @@ const config = {
         path: path.resolve(__dirname, 'lib'),
         clean: true,
         library: {
-            type: 'module',
+            type: 'commonjs-static',
         },
     },
     externalsType: 'module',
