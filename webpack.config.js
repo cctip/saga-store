@@ -22,12 +22,7 @@ const config = {
         outputModule: true,
     },
     externals: [
-        {
-            react: 'React',
-        },
-        // immer: 'immer',
-        // jotai: 'jotai',
-        // 'redux-saga': 'redux-saga',
+        'react',
         // redux-saga & redux-saga/effects & @redux-saga/core and so on...
         function ({ context, request }, callback) {
             if (/^@?redux-saga/.test(request)) {
