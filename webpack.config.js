@@ -1,7 +1,7 @@
 // Generated using webpack-cli https://github.com/webpack/webpack-cli
 
 const path = require('path');
-// const DeclarationBundlerPlugin = require('declaration-bundler-webpack-plugin');
+const TypescriptDeclarationPlugin = require('typescript-declaration-webpack-plugin');
 
 const isProduction = process.env.NODE_ENV == 'production';
 
@@ -15,8 +15,12 @@ const config = {
     },
     externals: {
         react: 'React',
+        immer: 'immer',
+        jotai: 'jotai',
+        'redux-saga': 'redux-saga',
     },
     plugins: [
+        new TypescriptDeclarationPlugin({}),
         // new DeclarationBundlerPlugin({
         //     moduleName: 'saga-store'
         // }),

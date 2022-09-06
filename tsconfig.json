@@ -1,8 +1,9 @@
 {
   "compilerOptions": {
     "declaration": true,
+    "declarationMap": true,
     "declarationDir": "types",
-    "module": "Node16",
+    "module": "CommonJS",
     "noImplicitAny": false,
     "removeComments": true,
     "preserveConstEnums": true,
