@@ -12,17 +12,21 @@ const config = {
         filename: 'index.js',
         path: path.resolve(__dirname, 'lib'),
         clean: true,
-        // library: {
-        //     name: '@cctip/saga-store',
-        //     type: 'umd',
-        // },
+        library: {
+            type: 'module',
+        },
     },
     externalsType: 'module',
     experiments: {
         outputModule: true,
     },
     externals: [
-        'react',
+        function ({ context, request }, callback) {
+            if (/^react/.test(request)) {
+              return callback(null, request, 'module');
+            }
+            callback();
+        },
         // redux-saga & redux-saga/effects & @redux-saga/core and so on...
         function ({ context, request }, callback) {
             if (/^@?redux-saga/.test(request)) {
