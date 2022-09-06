@@ -7,14 +7,20 @@ const isProduction = process.env.NODE_ENV == 'production';
 
 
 const config = {
+    // target: 'es2022',
     entry: './src/index.ts',
     output: {
         filename: 'index.js',
+
         path: path.resolve(__dirname, 'lib'),
         clean: true,
         library: {
             type: 'commonjs-static',
         },
+        libraryTarget: 'commonjs'
+        // environment: {
+        //     module: true,
+        // },
     },
     externalsType: 'module',
     experiments: {

@@ -1,12 +1,16 @@
 {
   "name": "@cctip/saga-store",
+  "type": "module",
   "version": "1.0.15",
   "description": "Next generation of state management.",
+  "exports": {
+    ".": "./lib/index.js",
+    "./package.json": "./package.json"
+  },
   "main": "lib/index.js",
-  "module": "esm/index.mjs",
+  "module": "lib/index.js",
   "files": [
     "lib",
-    "esm",
     "package.json"
   ],
   "scripts": {
