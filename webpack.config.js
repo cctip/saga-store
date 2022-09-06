@@ -40,7 +40,7 @@ const config = {
         function ({ context, request }, callback) {
             if (request === 'immer') {
                 // 该外部化模块是一个在`@scope/library`模块里的命名导出（named export）。
-                return callback(null, ['immer', 'namedexport'], 'module');
+                return callback(null, 'immer', 'module');
             }
             callback();
         },

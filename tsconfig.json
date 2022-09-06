@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "declaration": true,
-    "declarationMap": true,
-    "declarationDir": "types",
+    // "declarationMap": true,
+    // "declarationDir": "types",
     "module": "CommonJS",
     "noImplicitAny": false,
     "removeComments": true,
