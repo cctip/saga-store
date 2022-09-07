@@ -21,20 +21,6 @@ export type AnyAction = {
   [payload: string]: any;
 }
 
-type AtomMap = {[k: string]: Atom<any>};
-
-function getReadAgentAtom(atoms: AtomMap) {
-  return atom<any>(
-    (get) => {
-      return Object.fromEntries(
-        Object.entries(atoms).map(
-          ([k, a]) => [k, get(a)]
-        )
-      )
-    }
-  );
-}
-
 const getter = (get, set, arg) => get(arg);
 export function useAtomReadAgent() {
   return useAtomCallback<any, Atom<any>>(getter);

@@ -1,11 +1,11 @@
 import { runSaga, stdChannel } from 'redux-saga';
 import * as ef from 'redux-saga/effects';
 import type { RunSagaOptions } from '@redux-saga/core';
-import { useAtom, Provider as JotaiProvider, Atom, useAtomValue } from 'jotai';
+import { useAtom, Provider as JotaiProvider, Atom, useAtomValue, useSetAtom } from 'jotai';
 import { atomWithImmer } from 'jotai/immer';
 import { createContext, PropsWithChildren, useContext, useEffect, useRef } from 'react';
 import { Action } from '@redux-saga/types';
-import { AnyAction, globalActionRelayChannel } from './util';
+import { AnyAction, globalActionRelayChannel, useAtomReadAgent } from './util';
 
 export const globalChannel = stdChannel<AnyAction>();
 
@@ -13,14 +13,9 @@ const globalAtom = atomWithImmer({});
 
 export function useGlobalStore(globalTask: GeneratorFunction, opts: RunSagaOptions<Action, any> = {}) {
   const channel = useRef(stdChannel()).current;
-  const [globalValue, setGlobalValue] = useAtom(globalAtom);
-  const gvRef = useRef(globalValue);
-  useEffect(
-    () => {
-      gvRef.current = globalValue;
-    },
-    [globalValue],
-  );
+  const setGlobalValue = useSetAtom(globalAtom);
+  const readAtomValue = useAtomReadAgent();
+  
   const dispatch = (action: any) => {
     channel.put(action);
     globalActionRelayChannel.put(action);
@@ -31,7 +26,7 @@ export function useGlobalStore(globalTask: GeneratorFunction, opts: RunSagaOptio
       const task = runSaga({
         channel,
         dispatch,
-        getState: () => gvRef.current,
+        getState: () => readAtomValue(globalAtom),
         context: {
           setGlobalValue,
         },
