@@ -16,10 +16,12 @@ export function useGlobalStore(globalTask: GeneratorFunction, opts: RunSagaOptio
   const setGlobalValue = useSetAtom(globalAtom);
   const readAtomValue = useAtomReadAgent();
   
-  const dispatch = (action: any) => {
-    channel.put(action);
-    globalActionRelayChannel.put(action);
-  };
+  const dispatch = useRef(
+    (action: any) => {
+      channel.put(action);
+      globalActionRelayChannel.put(action);
+    }
+  ).current;
 
   useEffect(
     () => {
@@ -38,7 +40,7 @@ export function useGlobalStore(globalTask: GeneratorFunction, opts: RunSagaOptio
           console.error('failed to setup global task', e);
         };
         yield listenGlobalChannel();
-        yield ef.takeEvery('write-store' as any, writeGlobalAtom);
+        yield ef.takeEvery('_global/write-store' as any, writeGlobalAtom);
       });
       return () => {
         setTimeout(() => {
@@ -94,12 +96,14 @@ function* listenGlobalChannel() {
 
 function* writeGlobalAtom(action: { updater: (current: any) => void }) {
   const setter = yield ef.getContext('setGlobalValue');
+  console.log('writeGlobalAtom =>')
+  console.log(setter, action.updater.toString(), action)
   setter(action.updater);
 }
 
 export function setGlobalStore(updater: (current: any) => void) {
   globalChannel.put({
-    type: 'write-store',
+    type: '_global/write-store',
     updater,
   });
 }
