@@ -18,7 +18,7 @@ interface LocalDispatchType {
 const fallbackDispatch = () => { throw new Error('this should not happen!')};
 const LocalDispatchAtom = atom<{ dispatch: LocalDispatchType}>({ dispatch: fallbackDispatch });
 
-export function useLocaleDispatch() {
+export function useLocalDispatch() {
   return useAtomValue(LocalDispatchAtom).dispatch;
 }
 
