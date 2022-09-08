@@ -24,7 +24,7 @@ export function useLocalDispatch() {
 
 type OptsType = RunSagaOptions<Action, any>;
 
-function useLocalStore(opts: OptsType, atoms: AtomMap = {}, saga: GeneratorFunction, ...args: any[]) {
+function useLocalStore(opts: OptsType = {}, atoms: AtomMap = {}, saga: GeneratorFunction, ...args: any[]) {
   const channel = useRef(stdChannel()).current;
   const localDispatch = channel.put;
   const wholeStateAtom = useRef(waitForAll(atoms)).current;
