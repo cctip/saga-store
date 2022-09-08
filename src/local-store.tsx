@@ -24,7 +24,7 @@ export function useLocationDispatch() {
 
 type OptsType = RunSagaOptions<Action, any>;
 
-function useLocalStore(opts: OptsType, atoms: AtomMap, saga: GeneratorFunction, ...args: any[]) {
+function useLocalStore(opts: OptsType, atoms: AtomMap = {}, saga: GeneratorFunction, ...args: any[]) {
   const channel = useRef(stdChannel()).current;
   const localDispatch = channel.put;
   const wholeStateAtom = useRef(waitForAll(atoms)).current;
@@ -58,7 +58,7 @@ function useLocalStore(opts: OptsType, atoms: AtomMap, saga: GeneratorFunction, 
   return localDispatch;
 }
 
-type LocalSagaStoreProps = {
+type LocalSagaStoreOption = {
   task: GeneratorFunction;
   args?: any[];
   opts?: OptsType;
@@ -67,19 +67,14 @@ type LocalSagaStoreProps = {
 
 
 
-export function withLocalStore(Comp: React.ComponentType<PropsWithChildren<any>>) {
-  return function LocalSagaStore(props: PropsWithChildren<LocalSagaStoreProps>) {
-    const {
-      opts, task, args, atoms, 
-      children, ...rest
-    } = props;
+export function withLocalStore(Comp: React.ComponentType<PropsWithChildren<any>>, option: LocalSagaStoreOption) {
+  return function LocalSagaStore(props: PropsWithChildren<any>) {
+    const {opts, atoms, task, args} = option;
     const dispatch = useLocalStore(opts, atoms, task, ...args);
     const init = useRef([[LocalDispatchAtom, { dispatch }]]).current;
     return (
       <Provider initialValues={init as any}>
-        <Comp {...rest}>
-          {children}
-        </Comp>
+        <Comp {...props} />
       </Provider>
     );
   }
