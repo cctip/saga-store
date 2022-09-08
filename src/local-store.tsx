@@ -42,7 +42,7 @@ function useLocalStore(opts: OptsType = {}, atoms: AtomMap = {}, saga: Generator
         },
         ...opts,
       }, function* () {
-        yield ef.fork(saga, ...args);
+        yield ef.fork(saga, ...(args ?? []));
         yield ef.takeEvery(globalActionRelayChannel, function (gAction) {
           localDispatch(gAction);
         });
