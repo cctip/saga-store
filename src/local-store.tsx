@@ -1,9 +1,9 @@
-import { runSaga, stdChannel, END } from 'redux-saga';
+import { runSaga, stdChannel } from 'redux-saga';
 import * as ef from 'redux-saga/effects';
 import type { RunSagaOptions } from '@redux-saga/core';
-import { Atom } from 'jotai';
+import { atom, Atom, useAtomValue, Provider } from 'jotai';
 import { waitForAll } from 'jotai/utils';
-import { useEffect, useRef } from 'react';
+import { PropsWithChildren, useEffect, useRef } from 'react';
 import { Action } from '@redux-saga/types';
 import { globalActionRelayChannel, useAtomReadAgent, useAtomWriteAgent } from './util';
 
@@ -11,11 +11,23 @@ type AtomMap = {
   [key: string]: Atom<any>;
 }
 
-export function useLocalStore(opts: RunSagaOptions<Action, any>, atoms: AtomMap, saga: GeneratorFunction, ...args: any[]) {
+interface LocalDispatchType {
+  (action: any): void;
+}
+
+const fallbackDispatch = () => { throw new Error('this should not happen!')};
+const LocalDispatchAtom = atom<{ dispatch: LocalDispatchType}>({ dispatch: fallbackDispatch });
+
+export function useLocationDispatch() {
+  return useAtomValue(LocalDispatchAtom).dispatch;
+}
+
+type OptsType = RunSagaOptions<Action, any>;
+
+function useLocalStore(opts: OptsType, atoms: AtomMap, saga: GeneratorFunction, ...args: any[]) {
   const channel = useRef(stdChannel()).current;
   const localDispatch = channel.put;
   const wholeStateAtom = useRef(waitForAll(atoms)).current;
-  
   const writeAgent = useAtomWriteAgent();
   const readAgent = useAtomReadAgent();
   useEffect(
@@ -44,6 +56,33 @@ export function useLocalStore(opts: RunSagaOptions<Action, any>, atoms: AtomMap,
     [],
   );
   return localDispatch;
+}
+
+type LocalSagaStoreProps = {
+  task: GeneratorFunction;
+  args?: any[];
+  opts?: OptsType;
+  atoms?: AtomMap;
+}
+
+
+
+export function withLocalStore(Comp: React.ComponentType<PropsWithChildren<any>>) {
+  return function LocalSagaStore(props: PropsWithChildren<LocalSagaStoreProps>) {
+    const {
+      opts, task, args, atoms, 
+      children, ...rest
+    } = props;
+    const dispatch = useLocalStore(opts, atoms, task, ...args);
+    const init = useRef([[LocalDispatchAtom, { dispatch }]]).current;
+    return (
+      <Provider initialValues={init as any}>
+        <Comp {...rest}>
+          {children}
+        </Comp>
+      </Provider>
+    );
+  }
 }
 
 /**
