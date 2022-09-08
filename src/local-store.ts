@@ -1,4 +1,4 @@
-import { runSaga, stdChannel } from 'redux-saga';
+import { runSaga, stdChannel, END } from 'redux-saga';
 import * as ef from 'redux-saga/effects';
 import type { RunSagaOptions } from '@redux-saga/core';
 import { Atom } from 'jotai';
