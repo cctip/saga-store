@@ -1,4 +1,4 @@
-import { runSaga, stdChannel, channel } from 'redux-saga';
+import { runSaga, stdChannel, channel, END } from 'redux-saga';
 import * as ef from 'redux-saga/effects';
 import type { RunSagaOptions } from '@redux-saga/core';
 import { Provider as JotaiProvider, Atom, useAtomValue } from 'jotai';
@@ -41,14 +41,15 @@ export function useGlobalStore(globalTask: GeneratorFunction, opts: RunSagaOptio
         },
         ...opts,
       }, function* () {
-        yield ef.takeEvery(globalChannel, function* (action) { yield ef.put(action); });
-        yield ef.takeEvery('_global/write-store' as any, function* writeGlobalAtom(action: { updater: (current: any) => void }) {
-          console.log('asdfasd getContext', ef.getContext);
-          const setter = yield ef.getContext('setGlobalValue');
-          console.log('writeGlobalAtom =>')
-          console.log(setter, action.updater.toString(), action)
-          setter(action.updater);
-        });
+        yield ef.takeEvery(globalChannel, function* (action) { if (action !== END) yield ef.put(action); });
+        // yield ef.takeEvery('_global/write-store' as any, function* writeGlobalAtom(action: { updater: (current: any) => void } | END) {
+        //   if (action === END) return;
+        //   console.log('asdfasd getContext', ef.getContext);
+        //   const setter = yield ef.getContext('setGlobalValue');
+        //   console.log('writeGlobalAtom =>')
+        //   console.log(setter, action.updater.toString(), action)
+        //   setter(action.updater);
+        // });
         try {
           yield ef.call(globalTask ?? (() => {}));
         } catch (e) {
