@@ -70,7 +70,7 @@ type LocalSagaStoreOption = {
 export function withLocalStore(Comp: React.ComponentType<PropsWithChildren<any>>, option: LocalSagaStoreOption) {
   return function LocalSagaStore(props: PropsWithChildren<any>) {
     const {opts, atoms, task, args = []} = option;
-    const dispatch = useLocalStore(opts, atoms, task, ...args);
+    const dispatch = useLocalStore(opts, atoms, task, props, ...args);
     const init = useRef([[LocalDispatchAtom, { dispatch }]]).current;
     return (
       <Provider initialValues={init as any}>
