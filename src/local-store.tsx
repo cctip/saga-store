@@ -1,4 +1,4 @@
-import { runSaga, stdChannel } from 'redux-saga';
+import { channel, END, runSaga, stdChannel } from 'redux-saga';
 import * as ef from 'redux-saga/effects';
 import type { RunSagaOptions } from '@redux-saga/core';
 import { atom, Atom, useAtomValue, Provider } from 'jotai';
@@ -25,15 +25,15 @@ export function useLocalDispatch() {
 type OptsType = RunSagaOptions<Action, any>;
 
 function useLocalStore(opts: OptsType = {}, atoms: AtomMap = {}, saga: GeneratorFunction, ...args: any[]) {
-  const channel = useRef(stdChannel()).current;
-  const localDispatch = channel.put;
+  const mainChannel = useRef(stdChannel()).current;
+  const localDispatch = mainChannel.put;
   const wholeStateAtom = useRef(waitForAll(atoms)).current;
   const writeAgent = useAtomWriteAgent();
   const readAgent = useAtomReadAgent();
   useEffect(
     () => {
       const instance = runSaga({
-        channel,
+        channel: mainChannel,
         dispatch: localDispatch,
         getState: () => readAgent(wholeStateAtom),
         context: {
@@ -43,12 +43,13 @@ function useLocalStore(opts: OptsType = {}, atoms: AtomMap = {}, saga: Generator
         ...opts,
       }, function* () {
         yield ef.fork(saga, ...(args ?? []));
-        yield ef.fork(function* () {
-          do {
-            const packet = yield ef.take(globalActionRelayChannel);
-            localDispatch(packet);
-          } while(true);
-        });
+        // forward actions from global to local
+        const forward = (a) => {
+          if (a === END) return;
+          localDispatch(a);
+          globalActionRelayChannel.take(forward);
+        }
+        globalActionRelayChannel.take(forward);
       });
       return () => {
         setTimeout(() => {
