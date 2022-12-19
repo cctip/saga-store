@@ -1,6 +1,5 @@
 {
   "name": "@cctip/saga-store",
-  "type": "module",
   "version": "1.2.4",
   "description": "Next generation of state management.",
   "exports": {
