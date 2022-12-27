@@ -1,55 +1,35 @@
-import { channel, END, runSaga, stdChannel } from 'redux-saga';
+import { channel, runSaga, stdChannel } from 'redux-saga';
 import * as ef from 'redux-saga/effects';
 import type { RunSagaOptions } from '@redux-saga/core';
-import { atom, Atom, useAtomValue, Provider } from 'jotai';
-import { waitForAll } from 'jotai/utils';
-import { PropsWithChildren, useEffect, useRef } from 'react';
+import { PropsWithChildren, useEffect, useRef, createContext, useContext } from 'react';
 import { Action } from '@redux-saga/types';
-import { globalActionRelayChannel, useAtomReadAgent, useAtomWriteAgent } from './util';
-
-type AtomMap = {
-  [key: string]: Atom<any>;
-}
+import { observable, ObservableMap } from 'mobx';
 
 interface LocalDispatchType {
   (action: any): void;
 }
 
-const fallbackDispatch = () => { throw new Error('this should not happen!')};
-const LocalDispatchAtom = atom<{ dispatch: LocalDispatchType}>({ dispatch: fallbackDispatch });
+const fallbackDispatch = (action: any): void => { throw new Error('this should not happen!')};
+const LocalDispatchContext = createContext(fallbackDispatch);
 
 export function useLocalDispatch() {
-  return useAtomValue(LocalDispatchAtom).dispatch;
+  return useContext<LocalDispatchType>(LocalDispatchContext);
 }
 
 type OptsType = RunSagaOptions<Action, any>;
 
-function useLocalStore(opts: OptsType = {}, atoms: AtomMap = {}, saga: GeneratorFunction, ...args: any[]) {
+function useLocalStore(opts: OptsType = {}, store: any, saga: GeneratorFunction, ...args: any[]) {
   const mainChannel = useRef(stdChannel()).current;
-  const localDispatch = mainChannel.put;
-  const wholeStateAtom = useRef(waitForAll(atoms)).current;
-  const writeAgent = useAtomWriteAgent();
-  const readAgent = useAtomReadAgent();
+  const localDispatch = useRef((action: any) => {mainChannel.put(action);}).current;
   useEffect(
     () => {
       const instance = runSaga({
         channel: mainChannel,
         dispatch: localDispatch,
-        getState: () => readAgent(wholeStateAtom),
-        context: {
-          writeAgent,
-          readAgent,
-        },
+        getState: () => store,
         ...opts,
       }, function* () {
         yield ef.fork(saga, ...(args ?? []));
-        // forward actions from global to local
-        const forward = (a) => {
-          if (a === END) return;
-          localDispatch(a);
-          globalActionRelayChannel.take(forward);
-        }
-        globalActionRelayChannel.take(forward);
       });
       return () => {
         setTimeout(() => {
@@ -62,40 +42,31 @@ function useLocalStore(opts: OptsType = {}, atoms: AtomMap = {}, saga: Generator
   return localDispatch;
 }
 
+type argsGetter = () => any[];
+
 type LocalSagaStoreOption = {
   task: GeneratorFunction;
-  args?: any[];
+  args?: any[] | argsGetter;
   opts?: OptsType;
-  atoms?: AtomMap;
+  storeGetter?: () => ObservableMap;
 }
 
+const getVal = v => typeof v === 'function' ? v() : v;
 
+const SharedChannelContext = createContext(channel());
 
 export function withLocalStore(Comp: React.ComponentType<PropsWithChildren<any>>, option: LocalSagaStoreOption) {
   return function LocalSagaStore(props: PropsWithChildren<any>) {
-    const {opts, atoms, task, args = []} = option;
-    const dispatch = useLocalStore(opts, atoms, task, props, ...args);
-    const init = useRef([[LocalDispatchAtom, { dispatch }]]).current;
+    const {opts, storeGetter, task, args = []} = option;
+    const sharedChannel = useRef(channel()).current;
+    const dispatch = useLocalStore(opts, storeGetter?.() ?? observable.map(), task, props, ...getVal(args), sharedChannel);
     return (
-      <Provider initialValues={init as any}>
-        <Comp {...props} />
-      </Provider>
+      <SharedChannelContext.Provider value={sharedChannel}>
+        <LocalDispatchContext.Provider value={dispatch}>
+          <Comp {...props} />
+        </LocalDispatchContext.Provider>
+      </SharedChannelContext.Provider>
     );
   }
 }
 
-/**
- * use this only in local store
- * to change global store, use setGlobalStore !
- * @param atom 
- * @param val 
- */
-export function* writeAtom(atom: Atom<any>, val: any) {
-  const write = yield ef.getContext('writeAgent');
-  write({ atom, val });
-}
-
-export function* readAtom(atom: Atom<any>) {
-  const read = yield ef.getContext('readAgent');
-  return read(atom);
-}
