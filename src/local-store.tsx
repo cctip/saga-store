@@ -55,6 +55,10 @@ const getVal = v => typeof v === 'function' ? v() : v;
 
 const SharedChannelContext = createContext(channel());
 
+export function useSharedChannel() {
+  return useContext(SharedChannelContext);
+}
+
 export function withLocalStore(Comp: React.ComponentType<PropsWithChildren<any>>, option: LocalSagaStoreOption) {
   return function LocalSagaStore(props: PropsWithChildren<any>) {
     const {opts, storeGetter, task, args = []} = option;
