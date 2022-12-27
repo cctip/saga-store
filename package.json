@@ -14,7 +14,7 @@
   ],
   "scripts": {
     "test": "echo \"Just skip testing for github workflows...\" && exit 0",
-    "prepublishOnly": "tsc"
+    "prepublishOnly": "rm -fr lib && tsc"
   },
   "repository": {
     "type": "git",
