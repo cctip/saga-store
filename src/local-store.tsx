@@ -63,7 +63,7 @@ export function withLocalStore(Comp: React.ComponentType<PropsWithChildren<any>>
   return function LocalSagaStore(props: PropsWithChildren<any>) {
     const {opts, storeGetter, task, args = []} = option;
     const sharedChannel = useRef(channel()).current;
-    const dispatch = useLocalStore(opts, storeGetter?.() ?? observable.map(), task, props, ...getVal(args), sharedChannel);
+    const dispatch = useLocalStore(opts, storeGetter?.() ?? observable.map(), task, ...getVal(args), sharedChannel);
     return (
       <SharedChannelContext.Provider value={sharedChannel}>
         <LocalDispatchContext.Provider value={dispatch}>
