@@ -1,20 +1,16 @@
 import { runSaga, stdChannel, channel, END } from 'redux-saga';
 import * as ef from 'redux-saga/effects';
 import type { RunSagaOptions } from '@redux-saga/core';
-import { Provider as JotaiProvider, Atom, useAtomValue } from 'jotai';
-import { atomWithImmer } from 'jotai/immer';
-import { createContext, PropsWithChildren, useContext, useEffect, useRef } from 'react';
+import { createContext, PropsWithChildren, useContext, useEffect, useRef, useState } from 'react';
 import { Action } from '@redux-saga/types';
-import { AnyAction, globalActionRelayChannel, useAtomReadAgent, useAtomWriteAgent } from './util';
+import { AnyAction, globalActionRelayChannel } from './util';
+import { makeAutoObservable, runInAction } from 'mobx';
 
 export const globalChannel = channel<AnyAction>();
-
-const globalAtom = atomWithImmer({});
+const GlobalAtomContext = createContext<any>({});
 
 export function useGlobalStore(globalTask: GeneratorFunction, opts: RunSagaOptions<Action, any> = {}) {
   const ch = useRef(stdChannel()).current;
-  const writeAgent = useAtomWriteAgent();
-  const readAtomValue = useAtomReadAgent();
   
   const dispatch = useRef(
     (action: any) => {
@@ -23,17 +19,20 @@ export function useGlobalStore(globalTask: GeneratorFunction, opts: RunSagaOptio
     }
   ).current;
 
+  const state = useContext(GlobalAtomContext);
+
   useEffect(
     () => {
       const task = runSaga({
         channel: ch,
         dispatch,
-        getState: () => readAtomValue(globalAtom),
+        getState: () => state,
         context: {
-          setGlobalValue: (next) => writeAgent({
-            atom: globalAtom,
-            val: next,
-          }),
+          setGlobalValue: (next) => runInAction(
+            () => {
+              Object.assign(state, next);
+            }
+          ),
         },
         onError: (err, info) => {
           console.error(err);
@@ -42,14 +41,6 @@ export function useGlobalStore(globalTask: GeneratorFunction, opts: RunSagaOptio
         ...opts,
       }, function* () {
         yield ef.takeEvery(globalChannel, function* (action) { if (action !== END) yield ef.put(action); });
-        // yield ef.takeEvery('_global/write-store' as any, function* writeGlobalAtom(action: { updater: (current: any) => void } | END) {
-        //   if (action === END) return;
-        //   console.log('asdfasd getContext', ef.getContext);
-        //   const setter = yield ef.getContext('setGlobalValue');
-        //   console.log('writeGlobalAtom =>')
-        //   console.log(setter, action.updater.toString(), action)
-        //   setter(action.updater);
-        // });
         try {
           yield ef.call(globalTask ?? (() => {}));
         } catch (e) {
@@ -79,14 +70,14 @@ type StoreProviderProps = PropsWithChildren<{
 
 export function StoreProvider({ opts, task, children, initialValue = {} }: StoreProviderProps) {
   const dispatch = useGlobalStore(task, opts);
-  const vals = useRef<Array<[Atom<any>, any]>>([[globalAtom, initialValue]]).current;
+  const [globalAtom] = useState(() => makeAutoObservable(initialValue));
 
   return (
-    <JotaiProvider initialValues={vals}>
+    <GlobalAtomContext.Provider value={globalAtom}>
       <DispatchContext.Provider value={dispatch}>
         {children}
       </DispatchContext.Provider>
-    </JotaiProvider>
+    </GlobalAtomContext.Provider>
   )
 }
 
@@ -95,7 +86,7 @@ export function useDispatch() {
 }
 
 export function useSelector(fn?: (state: any) => any) {
-  const val = useAtomValue(globalAtom);
+  const val = useContext(GlobalAtomContext);
   return fn?.(val) ?? val;
 }
 

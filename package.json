@@ -28,8 +28,6 @@
   },
   "homepage": "https://github.com/cctip/saga-store#readme",
   "dependencies": {
-    "immer": "^9.0.15",
-    "jotai": "^1.8.2",
     "mobx": "^6.6.2",
     "redux-saga": "^1.2.1"
   },
